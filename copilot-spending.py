@@ -3,7 +3,11 @@
 """
 SwiftBar plugin for GitHub Copilot AI Credits usage tracking.
 Displays AI Credits consumption with per-model breakdown and monthly reset countdown.
-Configuration loaded from .env file.
+
+Configuration:
+- Load settings from .env file (GITHUB_TOKEN, GITHUB_USERNAME, PLAN_LIMIT)
+- Refresh interval: determined by SwiftBar plugin symlink name (e.g., copilot-spending.15m.py)
+  To change interval, rename the symlink in ~/Library/Application Support/SwiftBar/Plugins/
 """
 
 import json
@@ -16,26 +20,39 @@ from pathlib import Path
 
 
 def load_env_file(env_path=".env"):
-    """Load environment variables from .env file."""
+    """Load environment variables from .env file.
+    Searches in multiple locations:
+    1. Same directory as script (repo root when via symlink)
+    2. Symlink's parent directory (plugins folder)
+    3. User's home directory
+    """
     env_vars = {}
-    env_file = Path(__file__).parent / env_path
+    script_dir = Path(__file__).parent
     
-    if not env_file.exists():
-        return env_vars
+    # List of places to search for .env
+    search_paths = [
+        script_dir / env_path,  # Where script is located
+        script_dir.parent / env_path if script_dir.name == "Plugins" else None,  # Parent of Plugins folder
+        Path.home() / ".copilot-tracker" / env_path,  # ~/.copilot-tracker/.env
+    ]
     
-    try:
-        with open(env_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                # Skip comments and empty lines
-                if not line or line.startswith("#"):
-                    continue
-                # Parse KEY=VALUE
-                if "=" in line:
-                    key, value = line.split("=", 1)
-                    env_vars[key.strip()] = value.strip()
-    except Exception:
-        pass
+    for env_file in search_paths:
+        if env_file and env_file.exists():
+            try:
+                with open(env_file, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        # Skip comments and empty lines
+                        if not line or line.startswith("#"):
+                            continue
+                        # Parse KEY=VALUE
+                        if "=" in line:
+                            key, value = line.split("=", 1)
+                            env_vars[key.strip()] = value.strip()
+                # Found and loaded successfully
+                return env_vars
+            except Exception:
+                continue
     
     return env_vars
 
