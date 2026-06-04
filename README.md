@@ -47,15 +47,24 @@ brew install swiftbar
 4. Under **Account permissions**, enable **Plan** → **Read-only**
 5. Generate and copy the token
 
-### 3. Configure and Deploy
+### 3. Configure with .env file
 
 1. Clone this repo or download `copilot-spending.15m.py`
-2. Edit the file and replace:
-   - `GITHUB_TOKEN` with your token
-   - `GITHUB_USERNAME` with your GitHub username
-3. Set `PLAN_LIMIT` based on your plan:
-   - Pro: `1500`
-   - Pro+: `7000`
+2. Copy and configure `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+3. Edit `.env` and add your values:
+   ```env
+   GITHUB_TOKEN=github_pat_YOUR_TOKEN_HERE
+   GITHUB_USERNAME=your_github_username
+   PLAN_LIMIT=7000
+   ```
+   - `GITHUB_TOKEN`: Your Personal Access Token from step 2
+   - `GITHUB_USERNAME`: Your GitHub username
+   - `PLAN_LIMIT`: Based on your plan (Free: `50`, Pro: `300`, Pro+: `7000`)
+
+**Note:** `.env` is never committed to git (see `.gitignore`). Safe for local use only!
 
 ### 4. Install to SwiftBar
 
@@ -81,6 +90,8 @@ Click the SwiftBar icon → Refresh All
 The filename `copilot-spending.15m.py` sets refresh to every 15 minutes. Rename to change:
 - `copilot-spending.5m.py` → 5 minutes
 - `copilot-spending.1h.py` → 1 hour
+
+**Note:** When renaming, update symlink in SwiftBar plugins folder if using symlinks.
 
 ## API Endpoints Used
 

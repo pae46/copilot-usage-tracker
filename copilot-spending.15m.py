@@ -3,20 +3,48 @@
 """
 SwiftBar plugin for GitHub Copilot AI Credits usage tracking.
 Displays AI Credits consumption with per-model breakdown and monthly reset countdown.
+Configuration loaded from .env file.
 """
 
 import json
 import urllib.request
 import urllib.error
+import os
 from datetime import datetime, timedelta
 from calendar import monthrange
+from pathlib import Path
 
-# ========== CONFIGURATION ==========
-# Get your token from: https://github.com/settings/tokens?type=beta
-# Required permission: Account → Plan (read-only)
-GITHUB_TOKEN = "github_pat_YOUR_TOKEN_HERE"
-GITHUB_USERNAME = "pae46"
-PLAN_LIMIT = 7000  # Pro+: 7000 AI Credits
+
+def load_env_file(env_path=".env"):
+    """Load environment variables from .env file."""
+    env_vars = {}
+    env_file = Path(__file__).parent / env_path
+    
+    if not env_file.exists():
+        return env_vars
+    
+    try:
+        with open(env_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                # Skip comments and empty lines
+                if not line or line.startswith("#"):
+                    continue
+                # Parse KEY=VALUE
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    env_vars[key.strip()] = value.strip()
+    except Exception:
+        pass
+    
+    return env_vars
+
+
+# Load configuration from .env or environment variables
+env_vars = load_env_file()
+GITHUB_TOKEN = env_vars.get("GITHUB_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
+GITHUB_USERNAME = env_vars.get("GITHUB_USERNAME") or os.environ.get("GITHUB_USERNAME", "")
+PLAN_LIMIT = int(env_vars.get("PLAN_LIMIT", os.environ.get("PLAN_LIMIT", 7000)))
 
 # ===================================
 
@@ -66,7 +94,20 @@ def get_color(percentage):
 # Fetch data
 data = fetch_ai_credits()
 
-if "error" in data:
+if not GITHUB_TOKEN or not GITHUB_USERNAME:
+    print("⚙️  Setup | sfcolor=#f85149")
+    print("---")
+    print("Configuration missing!")
+    print("---")
+    print("1. Create .env file from .env.example:")
+    print("   cp .env.example .env")
+    print("2. Edit .env and add your:")
+    print("   - GITHUB_TOKEN")
+    print("   - GITHUB_USERNAME")
+    print("---")
+    print("More info | href=https://github.com/pae46/copilot-usage-tracker#setup")
+    print("Refresh | refresh=true")
+elif "error" in data:
     print(f"⚠️  Error | sfcolor=#f85149")
     print("---")
     print(f"HTTP {data['error']}")
