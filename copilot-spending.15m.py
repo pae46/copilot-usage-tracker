@@ -3,11 +3,7 @@
 """
 SwiftBar plugin for GitHub Copilot AI Credits usage tracking.
 Displays AI Credits consumption with per-model breakdown and monthly reset countdown.
-
-Configuration:
-- Load settings from .env file (GITHUB_TOKEN, GITHUB_USERNAME, PLAN_LIMIT)
-- Refresh interval: determined by SwiftBar plugin symlink name (e.g., copilot-spending.15m.py)
-  To change interval, rename the symlink in ~/Library/Application Support/SwiftBar/Plugins/
+Configuration loaded from .env file.
 """
 
 import json
