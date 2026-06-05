@@ -1,5 +1,20 @@
 #!/Library/Frameworks/Python.framework/Versions/3.12/bin/python3
 
+# <xbar.title>Copilot AI Credits</xbar.title>
+# <xbar.version>v1.0</xbar.version>
+# <xbar.author>pae46</xbar.author>
+# <xbar.author.github>pae46</xbar.author.github>
+# <xbar.desc>GitHub Copilot AI Credits usage tracking with per-model breakdown and monthly reset countdown.</xbar.desc>
+# <xbar.dependencies>python3</xbar.dependencies>
+# <xbar.abouturl>https://github.com/pae46/copilot-usage-tracker</xbar.abouturl>
+# <swiftbar.refreshOnOpen>true</swiftbar.refreshOnOpen>
+# <swiftbar.hideAbout>true</swiftbar.hideAbout>
+# <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
+# <swiftbar.hideLastUpdated>true</swiftbar.hideLastUpdated>
+# <swiftbar.hideDisablePlugin>true</swiftbar.hideDisablePlugin>
+# <swiftbar.hideSwiftBar>true</swiftbar.hideSwiftBar>
+# <swiftbar.schedule>1 * * * *</swiftbar.schedule>
+
 """
 SwiftBar plugin for GitHub Copilot AI Credits usage tracking.
 Displays AI Credits consumption with per-model breakdown and monthly reset countdown.
@@ -90,8 +105,13 @@ def get_days_until_reset():
 
 
 def format_number(num):
-    """Format number with thousands separator."""
+    """Format number with space thousands separator (for titles)."""
     return f"{int(num):,}".replace(",", " ")
+
+
+def format_badge(num):
+    """Format number with comma separator (safe for SwiftBar badge param)."""
+    return f"{int(num):,}"
 
 
 def get_color(percentage):
@@ -108,9 +128,9 @@ def get_color(percentage):
 data = fetch_ai_credits()
 
 if not GITHUB_TOKEN or not GITHUB_USERNAME:
-    print("⚙️  Setup | sfcolor=#f85149")
+    print("Setup | color=#f85149")
     print("---")
-    print("Configuration missing!")
+    print("Configuration missing | size=12 color=#f85149")
     print("---")
     print("1. Create .env file from .env.example:")
     print("   cp .env.example .env")
@@ -121,9 +141,9 @@ if not GITHUB_TOKEN or not GITHUB_USERNAME:
     print("More info | href=https://github.com/pae46/copilot-usage-tracker#setup")
     print("Refresh | refresh=true")
 elif "error" in data:
-    print(f"⚠️  Error | sfcolor=#f85149")
+    print("Error | color=#f85149")
     print("---")
-    print(f"HTTP {data['error']}")
+    print(f"HTTP {data['error']} | size=11 color=#f85149")
     print("Refresh | refresh=true")
 else:
     # Calculate totals and per-model usage
@@ -136,10 +156,10 @@ else:
     color = get_color(percentage_clamped)
     
     # Build progress bar
-    bar_length = 10
+    bar_length = 20
     filled = int(percentage_clamped * bar_length / 100)
     empty = bar_length - filled
-    progress_bar = "▓" * filled + "░" * empty
+    progress_bar = "█" * filled + "░" * empty
     
     # Sort items by usage (descending)
     sorted_items = sorted(items, key=lambda x: x["grossQuantity"], reverse=True)
@@ -148,24 +168,32 @@ else:
     days_left = get_days_until_reset()
     
     # Menu bar text
-    print(f"{percentage_clamped:.1f}% | color={color} sfcolor={color}")
+    print(f"{percentage_clamped:.1f}% | color={color}")
     
     # Dropdown menu
+    month_label = datetime.now().strftime("%B %Y")
     print("---")
-    print(f"AI Credits — June 2026 | size=13 weight=bold")
-    print(f"{progress_bar} {format_number(int(total_credits))}/{format_number(PLAN_LIMIT)} | size=11")
+    print(f"**AI Credits — {month_label}** | size=13 md=true")
+    print(f"{progress_bar}  {format_number(int(total_credits))} / {format_number(PLAN_LIMIT)} credits  ({percentage_clamped:.1f}%) | size=12 color={color} font=Menlo")
     print("---")
     
     # Per-model breakdown
+    max_name_len = max((len(item["model"]) for item in sorted_items), default=0)
+    max_qty_len = max((len(format_badge(int(item["grossQuantity"]))) for item in sorted_items), default=0)
     print("By Model | size=11 color=gray")
     for item in sorted_items:
         model_name = item["model"]
         quantity = int(item["grossQuantity"])
-        print(f"{model_name}: {format_number(quantity)} | size=10")
+        pct = (quantity / total_credits * 100) if total_credits > 0 else 0
+        mini_filled = int(pct * 8 / 100)
+        mini_bar = "█" * mini_filled + "░" * (8 - mini_filled)
+        padded_name = model_name.ljust(max_name_len)
+        padded_qty = format_badge(quantity).rjust(max_qty_len)
+        print(f"{padded_name}  {mini_bar}  {pct:5.1f}%  {padded_qty} cr | size=11 font=Menlo")
     
     print("---")
-    print(f"Total Cost: ${total_cost:.2f} | size=11 color=gray")
-    print(f"Resets in {days_left} days | size=11 color=gray")
+    print(f"Total Cost: ${total_cost:.2f} | size=11 font=Menlo")
+    print(f"Resets in {days_left} days | size=11 font=Menlo")
     print("---")
     print("View on GitHub | href=https://github.com/settings/copilot/features")
     print("Refresh | refresh=true")
