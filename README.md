@@ -17,6 +17,9 @@ A SwiftBar/xbar menu bar widget that shows your GitHub Copilot AI Credits usage 
 - Shows usage percentage in menu bar (color-coded: 🟢 green → 🟡 yellow → 🔴 red)
 - Progress bar with credits used/total
 - Days until monthly reset
+- **🆕 OpenRouter integration** (optional): Track monthly spend and key balance
+  - Budget progress bar (if configured)
+  - Monthly usage summary
 
 ## Screenshot
 
@@ -49,12 +52,12 @@ brew install swiftbar
 
 ### 3. Configure with .env file
 
-1. Clone this repo or download `copilot-spending.15m.py`
+1. Clone this repo or download `copilot-spending.py`
 2. Copy and configure `.env`:
    ```bash
    cp .env.example .env
    ```
-3. Edit `.env` and add your values:
+3. Edit `.env` and add your GitHub values:
    ```env
    GITHUB_TOKEN=github_pat_YOUR_TOKEN_HERE
    GITHUB_USERNAME=your_github_username
@@ -64,21 +67,29 @@ brew install swiftbar
    - `GITHUB_USERNAME`: Your GitHub username
    - `PLAN_LIMIT`: Based on your plan (Free: `50`, Pro: `300`, Pro+: `7000`)
 
+4. **(Optional) Configure OpenRouter:**
+   ```env
+   OPENROUTER_API_KEY=sk_your_openrouter_key
+   OPENROUTER_MONTHLY_BUDGET=20
+   ```
+   - Get your key from [OpenRouter settings](https://openrouter.ai/settings/keys)
+   - `OPENROUTER_MONTHLY_BUDGET`: Display monthly budget progress bar (leave empty to disable)
+
 **Note:** `.env` is never committed to git (see `.gitignore`). Safe for local use only!
 
 ### 4. Install to SwiftBar
 
 ```bash
 # Make executable
-chmod +x copilot-spending.15m.py
+chmod +x copilot-spending.py
 
 # Copy to SwiftBar plugins folder
-cp copilot-spending.15m.py "$HOME/Library/Application Support/SwiftBar/Plugins/"
+cp copilot-spending.py "$HOME/Library/Application Support/SwiftBar/Plugins/"
 ```
 
 Or create a symlink (recommended for development):
 ```bash
-ln -s "$(pwd)/copilot-spending.15m.py" "$HOME/Library/Application Support/SwiftBar/Plugins/"
+ln -s "$(pwd)/copilot-spending.py" "$HOME/Library/Application Support/SwiftBar/Plugins/"
 ```
 
 ### 5. Refresh SwiftBar
@@ -87,16 +98,22 @@ Click the SwiftBar icon → Refresh All
 
 ## Refresh Interval
 
-The filename `copilot-spending.15m.py` sets refresh to every 15 minutes. Rename to change:
-- `copilot-spending.5m.py` → 5 minutes
-- `copilot-spending.1h.py` → 1 hour
-
-**Note:** When renaming, update symlink in SwiftBar plugins folder if using symlinks.
+The refresh interval is controlled by the `swiftbar.schedule` header in the script (default: every 1 minute).
+To change, edit the header at the top of `copilot-spending.py`:
+```python
+# <swiftbar.schedule>1 * * * *</swiftbar.schedule>
+```
+(Cron format: `minute hour day month weekday`)
 
 ## API Endpoints Used
 
+### GitHub Copilot
 - `GET /users/{username}/settings/billing/ai_credit/usage` — AI Credits usage per model
 - Per-month breakdown with costs in USD
+
+### OpenRouter (Optional)
+- `GET /api/v1/key` — Current balance, monthly usage, key limits
+- Returns monthly spend and remaining credits (if key limit set)
 
 ## Troubleshooting
 
