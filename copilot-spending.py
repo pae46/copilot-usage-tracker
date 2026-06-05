@@ -7,7 +7,7 @@
 # <xbar.desc>GitHub Copilot AI Credits usage tracking with per-model breakdown and monthly reset countdown.</xbar.desc>
 # <xbar.dependencies>python3</xbar.dependencies>
 # <xbar.abouturl>https://github.com/pae46/copilot-usage-tracker</xbar.abouturl>
-# <swiftbar.refreshOnOpen>true</swiftbar.refreshOnOpen>
+
 # <swiftbar.hideAbout>true</swiftbar.hideAbout>
 # <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
 # <swiftbar.hideLastUpdated>true</swiftbar.hideLastUpdated>
