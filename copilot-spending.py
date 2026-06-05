@@ -13,7 +13,7 @@
 # <swiftbar.hideLastUpdated>true</swiftbar.hideLastUpdated>
 # <swiftbar.hideDisablePlugin>true</swiftbar.hideDisablePlugin>
 # <swiftbar.hideSwiftBar>true</swiftbar.hideSwiftBar>
-# <swiftbar.schedule>01 * * * *</swiftbar.schedule>
+# <swiftbar.schedule>*/2 * * * *</swiftbar.schedule>
 
 """
 SwiftBar plugin for GitHub Copilot AI Credits usage tracking.
@@ -175,14 +175,12 @@ def render_copilot(data):
     # Dropdown content for Copilot
     month_label = datetime.now().strftime("%B %Y")
     print("---")
-    print(f"**AI Credits — {month_label}** | size=13 md=true")
+    print(f"**Github Copilot** | size=13 md=true")
     print(f"{progress_bar}  {format_number(int(total_credits))} / {format_number(PLAN_LIMIT)} credits  ({percentage_clamped:.1f}%) | size=12 color={color} font=Menlo")
-    print("---")
     
     # Per-model breakdown
     max_name_len = max((len(item["model"]) for item in sorted_items), default=0)
     max_qty_len = max((len(format_badge(int(item["grossQuantity"]))) for item in sorted_items), default=0)
-    print("By Model | size=11 color=gray")
     for item in sorted_items:
         model_name = item["model"]
         quantity = int(item["grossQuantity"])
@@ -193,9 +191,7 @@ def render_copilot(data):
         padded_qty = format_badge(quantity).rjust(max_qty_len)
         print(f"{padded_name}  {mini_bar}  {pct:5.1f}%  {padded_qty} cr | size=11 font=Menlo")
     
-    print("---")
-    print(f"Total Cost: ${total_cost:.2f} | size=11 font=Menlo")
-    print(f"Resets in {days_left} days | size=11 font=Menlo")
+    print(f"Total Cost: ${total_cost:.2f} / Resets in {days_left} days | size=11 font=Menlo")
     print("View on GitHub | href=https://github.com/settings/copilot/features")
 
 
