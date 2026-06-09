@@ -2,7 +2,6 @@
 
 > 🍴 **Fork** of [GitHub Copilot usage tracking widget](https://github.com/bristena-op/copilot-usage-tracker) — modified to track **AI Credits** instead of Premium Requests, with per-model breakdown and Python implementation.
 > - **Original:** https://github.com/bristena-op/copilot-usage-tracker
-> - **Maintained by:** [@pae46](https://github.com/pae46)
 
 A SwiftBar/xbar menu bar widget that shows your GitHub Copilot AI Credits usage with a detailed breakdown by model.
 
