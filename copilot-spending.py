@@ -15,6 +15,8 @@
 # <swiftbar.hideSwiftBar>true</swiftbar.hideSwiftBar>
 # <swiftbar.schedule>*/2 * * * *</swiftbar.schedule>
 
+# <swiftbar.refreshOnOpen>false</swiftbar.refreshOnOpen>
+
 """
 SwiftBar plugin for GitHub Copilot AI Credits usage tracking.
 Displays AI Credits consumption with per-model breakdown and monthly reset countdown.
@@ -76,6 +78,9 @@ PLAN_LIMIT = int(env_vars.get("PLAN_LIMIT", os.environ.get("PLAN_LIMIT", 7000)))
 
 # OpenRouter configuration (optional — requires management key)
 OPENROUTER_MANAGEMENT_KEY = env_vars.get("OPENROUTER_MANAGEMENT_KEY") or os.environ.get("OPENROUTER_MANAGEMENT_KEY", "")
+
+ORANGE_THRESHOLD = 1.0
+RED_THRESHOLD = 1.2
 
 # ===================================
 
@@ -141,12 +146,32 @@ def format_badge(num):
 
 def get_color(percentage):
     """Return hex color based on usage percentage."""
-    if percentage < 60:
+    if percentage < 75:
         return "#3fb950"  # Green
     elif percentage < 85:
         return "#d29922"  # Yellow
     else:
         return "#f85149"  # Red
+
+
+def get_usage_color(used: int) -> tuple[str, float]:
+    """Return burn-rate color and ratio based on today's expected usage pace."""
+    today = datetime.now()
+    _, days_in_month = monthrange(today.year, today.month)
+    expected = PLAN_LIMIT * (today.day / days_in_month)
+
+    ratio = 0.0
+    if expected > 0:
+        ratio = used / expected
+
+    if expected == 0 or used == 0:
+        return "#3fb950", ratio
+
+    if ratio <= ORANGE_THRESHOLD:
+        return "#3fb950", ratio
+    if ratio <= RED_THRESHOLD:
+        return "#d29922", ratio
+    return "#f85149", ratio
 
 
 def render_copilot(data):
@@ -159,6 +184,7 @@ def render_copilot(data):
     percentage = (total_credits / PLAN_LIMIT) * 100
     percentage_clamped = min(percentage, 100)
     color = get_color(percentage_clamped)
+    _, ratio = get_usage_color(total_credits)
     
     # Build progress bar
     bar_length = 20
@@ -176,7 +202,7 @@ def render_copilot(data):
     month_label = datetime.now().strftime("%B %Y")
     print("---")
     print(f"**Github Copilot** | size=13 md=true")
-    print(f"{progress_bar}  {format_number(int(total_credits))} / {format_number(PLAN_LIMIT)} credits  ({percentage_clamped:.1f}%) | size=12 color={color} font=Menlo")
+    print(f"{progress_bar}  {format_number(int(total_credits))} / {format_number(PLAN_LIMIT)} credits  ({percentage_clamped:.1f}% / {ratio * 100:.1f}%) | size=12 color={color} font=Menlo")
     
     # Per-model breakdown
     max_name_len = max((len(item["model"]) for item in sorted_items), default=0)
@@ -262,10 +288,10 @@ else:
     total_credits = sum(item["grossQuantity"] for item in items)
     percentage = (total_credits / PLAN_LIMIT) * 100
     percentage_clamped = min(percentage, 100)
-    color = get_color(percentage_clamped)
+    color, ratio = get_usage_color(total_credits)
     
     # Menu bar title
-    print(f"{percentage_clamped:.1f}% | color={color}")
+    print(f"{percentage_clamped:.1f}% | color={color} size=11 font=Menlo")
     
     # Render Copilot section (dropdown)
     render_copilot(copilot_data)
