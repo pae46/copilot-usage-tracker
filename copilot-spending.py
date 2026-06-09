@@ -175,6 +175,15 @@ def get_usage_color(used: int) -> tuple[str, float]:
     return "#f85149", ratio
 
 
+def get_burn_rate_color(ratio: float) -> str:
+    """Return burn-rate color: grey below expected pace, yellow/orange above, red significantly above."""
+    if ratio <= ORANGE_THRESHOLD:
+        return "#8c959f"  # Grey
+    if ratio <= RED_THRESHOLD:
+        return "#d29922"  # Yellow
+    return "#f85149"  # Red
+
+
 def render_copilot(data):
     """Render GitHub Copilot AI Credits section to stdout (dropdown part only)."""
     # Calculate totals and per-model usage
@@ -186,12 +195,18 @@ def render_copilot(data):
     percentage_clamped = min(percentage, 100)
     color = get_color(percentage_clamped)
     _, ratio = get_usage_color(total_credits)
+    burn_rate_color = get_burn_rate_color(ratio)
     
-    # Build progress bar
+    # Build progress bars
     bar_length = 20
     filled = int(percentage_clamped * bar_length / 100)
     empty = bar_length - filled
-    progress_bar = "█" * filled + "░" * empty
+    progress_bar = ("█" * filled) + "▓▒" + ("░" * empty)
+    
+    burn_filled = int(min(ratio, 2.0) * bar_length / 2.0)
+    burn_filled = max(0, min(bar_length, burn_filled))
+    burn_empty = bar_length - burn_filled
+    burn_rate_bar = ("█" * burn_filled) + "▓▒" + ("░" * burn_empty)
     
     # Sort items by usage (descending)
     sorted_items = sorted(items, key=lambda x: x["grossQuantity"], reverse=True)
@@ -203,7 +218,9 @@ def render_copilot(data):
     month_label = datetime.now().strftime("%B %Y")
     print("---")
     print(f"**Github Copilot** | size=13 md=true")
-    print(f"{progress_bar}  {format_number(int(total_credits))} / {format_number(PLAN_LIMIT)} credits  ({percentage_clamped:.1f}% / {ratio * 100:.1f}%) | size=12 color={color} font=Menlo")
+
+    print(f"{burn_rate_bar}  Burn rate ({ratio * 100:.1f}%) | size=12 color={burn_rate_color} font=Menlo")
+    print(f"{progress_bar}  {format_number(int(total_credits))} / {format_number(PLAN_LIMIT)} credits  ({percentage_clamped:.1f}%) | size=12 color={color} font=Menlo")
     
     # Per-model breakdown
     max_name_len = max((len(item["model"]) for item in sorted_items), default=0)
@@ -213,7 +230,7 @@ def render_copilot(data):
         quantity = int(item["grossQuantity"])
         pct = (quantity / total_credits * 100) if total_credits > 0 else 0
         mini_filled = int(pct * 8 / 100)
-        mini_bar = "█" * mini_filled + "░" * (8 - mini_filled)
+        mini_bar = ("█" * mini_filled) + "▓▒" + ("░" * (8 - mini_filled))
         padded_name = model_name.ljust(max_name_len)
         padded_qty = format_badge(quantity).rjust(max_qty_len)
         print(f"{padded_name}  {mini_bar}  {pct:5.1f}%  {padded_qty} cr | size=11 font=Menlo")
@@ -248,7 +265,7 @@ def render_openrouter(data):
         bar_length = 20
         filled = int(spent_pct_clamped * bar_length / 100)
         empty = bar_length - filled
-        progress_bar = "█" * filled + "░" * empty
+        progress_bar = ("█" * filled) + "▓▒" + ("░" * empty)
         
         print(f"{progress_bar}  ${remaining:.2f} remaining  ({100 - spent_pct_clamped:.1f}%) | size=12 color={color} font=Menlo")
         print(f"Spent: ${total_usage:.2f} / Loaded: ${total_credits:.2f} | size=11 font=Menlo")
