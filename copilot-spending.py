@@ -74,13 +74,14 @@ def load_env_file(env_path=".env"):
 env_vars = load_env_file()
 GITHUB_TOKEN = env_vars.get("GITHUB_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
 GITHUB_USERNAME = env_vars.get("GITHUB_USERNAME") or os.environ.get("GITHUB_USERNAME", "")
-PLAN_LIMIT = int(env_vars.get("PLAN_LIMIT", os.environ.get("PLAN_LIMIT", 7000)))
+PLAN_LIMIT = int(env_vars.get("PLAN_LIMIT", os.environ.get("PLAN_LIMIT", 1500)))
+
+# Burn-rate thresholds based on expected usage pace
+ORANGE_THRESHOLD = float(env_vars.get("ORANGE_THRESHOLD", os.environ.get("ORANGE_THRESHOLD", 1.0)))
+RED_THRESHOLD = float(env_vars.get("RED_THRESHOLD", os.environ.get("RED_THRESHOLD", 1.2)))
 
 # OpenRouter configuration (optional — requires management key)
 OPENROUTER_MANAGEMENT_KEY = env_vars.get("OPENROUTER_MANAGEMENT_KEY") or os.environ.get("OPENROUTER_MANAGEMENT_KEY", "")
-
-ORANGE_THRESHOLD = 1.0
-RED_THRESHOLD = 1.2
 
 # ===================================
 

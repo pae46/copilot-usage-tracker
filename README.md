@@ -21,12 +21,6 @@ A SwiftBar/xbar menu bar widget that shows your GitHub Copilot AI Credits usage 
   - Budget progress bar (if configured)
   - Monthly usage summary
 
-## Screenshot
-
-<p align="center">
-  <img src="screenshot.png" alt="Copilot AI Credits Widget" width="400">
-</p>
-
 ## Requirements
 
 - macOS
