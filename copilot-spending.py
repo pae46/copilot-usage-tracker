@@ -156,10 +156,13 @@ def get_color(percentage):
 
 
 def get_usage_color(used: int) -> tuple[str, float]:
-    """Return burn-rate color and ratio based on today's expected usage pace."""
+    """Return burn-rate color and ratio based on elapsed hours in the month."""
     today = datetime.now()
     _, days_in_month = monthrange(today.year, today.month)
-    expected = PLAN_LIMIT * (today.day / days_in_month)
+    month_start = datetime(today.year, today.month, 1)
+    total_hours_in_month = days_in_month * 24
+    elapsed_hours = (today - month_start).total_seconds() / 3600
+    expected = PLAN_LIMIT * (elapsed_hours / total_hours_in_month)
 
     ratio = 0.0
     if expected > 0:
